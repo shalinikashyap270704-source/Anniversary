@@ -6192,11 +6192,13 @@ body {
 
 /* ===================================================
    🚢 SCENE 2A: SMALL SHIP CROSSING THE SEA (HORIZON)
+   - Sails across the sea, stops at center with anniversary message, then continues!
    =================================================== */
 .sea-anniversary-ship-wrapper {
   position: absolute;
   bottom: 27%;
-  left: 0;
+  left: 50%;
+  margin-left: -140px;
   width: 280px;
   pointer-events: none;
   z-index: 4;
@@ -6218,13 +6220,13 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, rgba(255, 51, 119, 0.94) 0%, rgba(245, 158, 11, 0.96) 100%);
-  border: 1.5px solid #fef08a;
-  border-radius: 20px;
-  padding: 5px 14px;
-  box-shadow: 0 4px 20px rgba(255, 51, 119, 0.65), 0 0 14px rgba(254, 240, 138, 0.85);
+  background: linear-gradient(135deg, rgba(255, 51, 119, 0.96) 0%, rgba(245, 158, 11, 0.96) 100%);
+  border: 2px solid #fef08a;
+  border-radius: 24px;
+  padding: 6px 16px;
+  box-shadow: 0 4px 20px rgba(255, 51, 119, 0.65), 0 0 16px rgba(254, 240, 138, 0.85);
   white-space: nowrap;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   animation: bannerFloatGlow 2.2s ease-in-out infinite alternate;
 }
 
@@ -6235,7 +6237,7 @@ body {
 
 .banner-wishing-text {
   font-family: var(--font-cute);
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: 0.3px;
@@ -6281,16 +6283,17 @@ body {
 }
 
 /* ===================================================
-   🕊️ SCENE 2B: BIRDS IN HEART FORMATION (FROM SUN TO SCREEN)
-   - Disappears permanently after dropping letter!
+   🕊️ SCENE 2B: BIRDS IN HEART FORMATION (EMERGES DIRECTLY FROM SUN TO SCREEN)
+   - Originates at the center of the setting sun
+   - Flies straight forward from center to screen (scaling up)
+   - Leader drops letter and flock disperses into the sky!
    =================================================== */
 .birds-heart-flock-formation {
   position: absolute;
-  top: 36%;
+  top: calc(66% - 90px);
   left: 50%;
-  transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 9;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;

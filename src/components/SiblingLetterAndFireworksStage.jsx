@@ -50,8 +50,9 @@ const BALLOON_POP_BLESSINGS = [
 ];
 
 const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFireworksStage({ onRestartExperience }, ref) {
-  // Phases: 'birds' -> 'letter' -> 'celebration'
-  const [phase, setPhase] = useState('birds');
+  // Phases: 'ship' -> 'birds' -> 'letter' -> 'celebration'
+  const [phase, setPhase] = useState('ship');
+  const [shipPausedAtCenter, setShipPausedAtCenter] = useState(false);
   const [birdsVisible, setBirdsVisible] = useState(true);
   const [birdsDispersed, setBirdsDispersed] = useState(false);
   const [letterDropped, setLetterDropped] = useState(false);
@@ -85,41 +86,97 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
         setShowBeachOnly(false);
         return true;
       }
+      if (phase === 'letter') {
+        setPhase('birds');
+        return true;
+      }
+      if (phase === 'birds') {
+        setPhase('ship');
+        return true;
+      }
       return false;
     }
   }), [phase, showBeachOnly]);
 
   // =========================================================
-  // 1. SEQUENCE ORCHESTRATION: SUNSET BEACH -> BIRDS IN HEART FORMATION -> LETTER DROP
+  // 1. SEQUENCE ORCHESTRATION:
+  // Phase 1: SHIP CROSSING SEA (STOPS AT CENTER WITH ANNIVERSARY BANNER THEN GOES)
   // =========================================================
   useEffect(() => {
+    if (phase !== 'ship') return;
+
     sounds.playRomanticChime();
 
-    // Birds in heart formation swoop across the sunset ocean -> drops letter at 3.0s
+    // Ship enters from left (-85vw).
+    // At 3.0s: reaches center (0vw) and stops prominently
+    const pauseTimer = setTimeout(() => {
+      setShipPausedAtCenter(true);
+      sounds.playRomanticChime();
+      confetti({
+        particleCount: 45,
+        spread: 60,
+        origin: { x: 0.5, y: 0.65 },
+        colors: ['#ffd700', '#ff3377', '#fef08a']
+      });
+    }, 3000);
+
+    // At 5.8s: Ship resumes sailing towards the right
+    const resumeTimer = setTimeout(() => {
+      setShipPausedAtCenter(false);
+    }, 5800);
+
+    // At 8.8s: Ship sails off completely -> Transition to Birds from Sun
+    const shipDoneTimer = setTimeout(() => {
+      setPhase('birds');
+    }, 8800);
+
+    return () => {
+      clearTimeout(pauseTimer);
+      clearTimeout(resumeTimer);
+      clearTimeout(shipDoneTimer);
+    };
+  }, [phase]);
+
+  const handleSkipShip = () => {
+    setShipPausedAtCenter(false);
+    setPhase('birds');
+    sounds.playRomanticChime();
+  };
+
+  // =========================================================
+  // Phase 2: BIRDS IN HEART FORMATION EMERGE FROM THE SUN (CENTER TO SCREEN)
+  // =========================================================
+  useEffect(() => {
+    if (phase !== 'birds') return;
+
+    sounds.playBirdChirp();
+
+    // Birds emerge directly from center of the sun and fly straight towards the screen!
+    // At 3.2s: Lead bird arrives in foreground with the sealed letter and drops it!
     const dropTimer = setTimeout(() => {
       setLetterDropped(true);
       setLetterOpeningStep('falling');
       sounds.playBirdChirp();
       sounds.playWhoosh();
       confetti({
-        particleCount: 50,
-        spread: 70,
-        origin: { x: 0.5, y: 0.35 },
+        particleCount: 55,
+        spread: 75,
+        origin: { x: 0.5, y: 0.42 },
         colors: ['#ffd700', '#ff3377', '#fef08a']
       });
-    }, 3000);
+    }, 3200);
 
-    // Birds fly gracefully across to the right horizon at 3.8s
+    // Birds gracefully disperse upward into the clouds at 4.0s
     const disperseTimer = setTimeout(() => {
       setBirdsDispersed(true);
-    }, 3800);
+    }, 4000);
 
-    // Birds disappear into distance at 4.6s
+    // Birds fade out completely into sky at 4.8s
     const birdsGoneTimer = setTimeout(() => {
       setBirdsVisible(false);
-    }, 4600);
+    }, 4800);
 
-    // Wax seal cracks open with sparkles at 4.8s
+    // Wax seal cracks open with sparkles at 5.0s
     const sealTimer = setTimeout(() => {
       setLetterOpeningStep('breaking-seal');
       sounds.playCrack();
@@ -129,15 +186,15 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
         origin: { x: 0.5, y: 0.45 },
         colors: ['#ffd700', '#dc2626']
       });
-    }, 4800);
+    }, 5000);
 
-    // Envelope flap folds open & letter unfurls at 5.5s
+    // Envelope flap folds open & letter unfurls at 5.7s
     const unfoldTimer = setTimeout(() => {
       setLetterOpeningStep('unfolding');
       sounds.playHarpArpeggio();
-    }, 5500);
+    }, 5700);
 
-    // Full readable parchment letter ready at 6.3s
+    // Full readable parchment letter ready at 6.5s
     const openTimer = setTimeout(() => {
       setPhase('letter');
       setLetterOpeningStep('opened');
@@ -147,7 +204,7 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
         origin: { x: 0.5, y: 0.45 },
         colors: ['#ffd700', '#ec4899', '#ffffff']
       });
-    }, 6300);
+    }, 6500);
 
     return () => {
       clearTimeout(dropTimer);
@@ -157,7 +214,7 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
       clearTimeout(unfoldTimer);
       clearTimeout(openTimer);
     };
-  }, []);
+  }, [phase]);
 
   const handleSkipToLetter = () => {
     setLetterDropped(true);
@@ -506,14 +563,14 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
           {phase === 'ship' && (
             <motion.div
               className="sea-anniversary-ship-wrapper"
-              initial={{ x: '-25vw' }}
+              initial={{ x: '-85vw' }}
               animate={{
-                // Enters from left (-25vw), stops at center (45vw), pauses 2.3s, then sails to 115vw!
-                x: ['-25vw', '45vw', '45vw', '115vw']
+                // Enters from left (-85vw), stops at center (0vw), pauses 2.8s, then sails to 85vw!
+                x: ['-85vw', '0vw', '0vw', '85vw']
               }}
               transition={{
-                duration: 8.5,
-                times: [0, 0.38, 0.65, 1],
+                duration: 8.8,
+                times: [0, 0.34, 0.66, 1],
                 ease: 'easeInOut'
               }}
             >
@@ -522,13 +579,13 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
                 <div className={`ship-anniversary-banner ${shipPausedAtCenter ? 'banner-center-pulse' : ''}`}>
                   <span className="banner-sparkle-left">✨</span>
                   <span className="banner-wishing-text">
-                    {shipPausedAtCenter ? '💖 Wishing Happy 1st Anniversary Didi & Jiju! 🥂' : 'Happy 1st Anniversary Didi & Jiju! 💕'}
+                    {shipPausedAtCenter ? '💖 Happy 1st Anniversary Didi & Jiju! 🥂' : '✨ Happy 1st Anniversary Didi & Jiju! 💖'}
                   </span>
                   <span className="banner-sparkle-right">🚢</span>
                 </div>
 
                 {/* SVG Silhouette of the Romantic Yacht/Ship */}
-                <svg width="150" height="75" viewBox="0 0 150 75" className="sea-ship-svg">
+                <svg width="170" height="85" viewBox="0 0 150 75" className="sea-ship-svg">
                   <defs>
                     <linearGradient id="shipHullGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                       <stop offset="0%" stopColor="#fed7aa" />
@@ -573,7 +630,7 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
         {/* Skip Ship Button */}
         {phase === 'ship' && (
           <button className="skip-ship-btn" onClick={handleSkipShip}>
-            <span>Watch Heart Birds 🕊️➔</span>
+            <span>Watch Birds from Sun 🕊️➔</span>
             <FastForward size={14} />
           </button>
         )}
@@ -683,45 +740,58 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
       </div>
 
       {/* =========================================================
-          🕊️ BIRDS IN HEART FORMATION: FLYING FROM ONE END TO THE OTHER OVER SUNSET OCEAN
-          - Sweeps across sunset sky in heart formation
-          - Leader drops the letter at center
-          - Flock soars away gracefully to the horizon!
+          🕊️ BIRDS IN HEART FORMATION: EMERGES DIRECTLY FROM THE SUN TO SCREEN
+          - Starts at center of the sun as small dots
+          - Flies straight forward from center to screen (scaling up)
+          - Leader drops the letter at center foreground
+          - Flock soars away gracefully into the clouds!
           ========================================================= */}
       <AnimatePresence>
-        {birdsVisible && (
+        {birdsVisible && phase === 'birds' && (
           <motion.div
             className="birds-heart-flock-formation"
-            initial={{ scale: 0.38, opacity: 0, x: '-60vw', y: '-10vh' }}
+            initial={{
+              x: '-50%',
+              y: '-50%',
+              scale: 0.04,
+              opacity: 0,
+              filter: 'blur(3px)'
+            }}
             animate={
               birdsDispersed
                 ? {
-                    scale: 0.32,
-                    x: '65vw',
-                    y: '-26vh',
+                    scale: 1.6,
+                    y: '-220%',
+                    x: '-50%',
                     opacity: 0,
-                    transition: { duration: 1.8, ease: 'easeIn' }
+                    filter: 'blur(3px)',
+                    transition: { duration: 1.1, ease: 'easeIn' }
                   }
                 : {
-                    scale: [0.38, 0.75, 1.05, 1.0],
-                    x: ['-60vw', '-25vw', '0vw', '8vw'],
-                    y: ['-10vh', '-2vh', '2vh', '0vh'],
-                    opacity: [0, 0.85, 1, 1],
-                    transition: { duration: 3.0, ease: [0.25, 1, 0.5, 1] }
+                    scale: [0.04, 0.22, 0.58, 0.95, 1.05],
+                    x: ['-50%', '-50%', '-50%', '-50%', '-50%'],
+                    y: ['-50%', '-60%', '-70%', '-65%', '-55%'],
+                    opacity: [0, 0.85, 1, 1, 1],
+                    filter: ['blur(3px)', 'blur(1.5px)', 'blur(0px)', 'blur(0px)', 'blur(0px)'],
+                    transition: {
+                      duration: 3.2,
+                      times: [0, 0.25, 0.55, 0.85, 1],
+                      ease: [0.22, 1, 0.36, 1]
+                    }
                   }
             }
           >
             <svg width="420" height="340" viewBox="-120 -100 240 220" className="heart-birds-group-svg">
               <defs>
                 <filter id="birdGoldHalo">
-                  <feDropShadow dx="0" dy="0" stdDeviation="3.5" floodColor="#ffd700" floodOpacity="0.85" />
+                  <feDropShadow dx="0" dy="0" stdDeviation="4.5" floodColor="#ffd700" floodOpacity="0.95" />
                 </filter>
               </defs>
 
               {HEART_BIRD_OFFSETS.map((bird) => (
                 <g
                   key={`heart-bird-${bird.id}`}
-                  transform={`translate(${bird.x}, ${bird.y}) scale(${bird.isLeader ? 1.35 : 0.95})`}
+                  transform={`translate(${bird.x}, ${bird.y}) scale(${bird.isLeader ? 1.4 : 0.95})`}
                   filter={bird.isLeader ? 'url(#birdGoldHalo)' : undefined}
                 >
                   <g fill={bird.isLeader ? '#ffd700' : '#1e112a'} stroke={bird.isLeader ? '#ffffff' : '#fde047'} strokeWidth="0.8">
@@ -733,9 +803,10 @@ const SiblingLetterAndFireworksStage = forwardRef(function SiblingLetterAndFirew
                   </g>
 
                   {bird.isLeader && !letterDropped && (
-                    <g transform="translate(0, 8) scale(0.75)">
+                    <g transform="translate(0, 8) scale(0.85)">
                       <rect x="-9" y="-6" width="18" height="12" rx="2" fill="#fffef0" stroke="#f59e0b" strokeWidth="1.2" />
                       <circle cx="0" cy="0" r="3.2" fill="#dc2626" />
+                      <path d="M -8 -5 L 0 1 L 8 -5" fill="none" stroke="#f59e0b" strokeWidth="0.8" />
                     </g>
                   )}
                 </g>
