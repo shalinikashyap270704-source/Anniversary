@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9a9e" />
+      <stop offset="100%" stop-color="#fecfef" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="420" fill="url(#bgGrad)" rx="20" />
+  <circle cx="300" cy="180" r="85" fill="rgba(255,255,255,0.28)" />
+  <text x="300" y="215" font-size="95" text-anchor="middle" font-family="system-ui, sans-serif">👧</text>
+  <text x="300" y="318" font-size="28" font-weight="bold" fill="#831843" text-anchor="middle" font-family="system-ui, sans-serif">Little Miss Sunshine</text>
+  <text x="300" y="358" font-size="20" fill="#831843" opacity="0.85" text-anchor="middle" font-family="system-ui, sans-serif">1998 • Pure Innocence 🌸</text>
+</svg>
